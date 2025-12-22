@@ -7,26 +7,65 @@ This guide shows you how to run the seat occupancy detection system on your loca
 - Python 3.8+
 - Webcam (built-in or USB)
 - (Optional) CUDA-capable GPU for better performance
+- Git (for cloning the repository)
 
 ---
 
-## Quick Start
+## Initial Setup (New Machine)
 
-### Step 1: Navigate to Project Directory
+If this is your first time setting up the project on a new machine, follow these steps:
+
+### Step 1: Clone the Repository
 
 ```bash
-cd /Users/himanshuchauhan/college/seat-occupancy-detection
+git clone https://github.com/himanshu-cloudsufi/seat-occupancy-detection.git
+cd seat-occupancy-detection
 ```
 
-### Step 2: Activate Virtual Environment
+Or if you already have the repository:
+```bash
+cd /path/to/seat-occupancy-detection
+```
 
+### Step 2: Create Virtual Environment
+
+```bash
+python3 -m venv venv
+```
+
+This creates a new virtual environment in the `venv` directory.
+
+### Step 3: Activate Virtual Environment
+
+**macOS/Linux:**
 ```bash
 source venv/bin/activate
 ```
 
+**Windows:**
+```bash
+venv\Scripts\activate
+```
+
 You should see `(venv)` appear in your terminal prompt.
 
-### Step 3: Verify Installation
+### Step 4: Install Dependencies
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+This will install all required packages:
+- PyTorch and torchvision
+- OpenCV (cv2)
+- YOLOv5
+- NumPy
+- Flask (for web interface)
+
+**Note:** First installation may take 5-10 minutes depending on your internet connection.
+
+### Step 5: Verify Installation
 
 ```bash
 python3 test_setup.py
@@ -38,6 +77,34 @@ This command checks:
 - ✓ CUDA/GPU availability
 - ✓ Webcam access
 - ✓ YOLOv5 model weights (downloads on first run ~14MB)
+
+**If all checks pass, you're ready to run the system!**
+
+---
+
+## Quick Start (Existing Setup)
+
+If you've already completed the initial setup, use these commands:
+
+### Step 1: Navigate to Project Directory
+
+```bash
+cd /path/to/seat-occupancy-detection
+```
+
+### Step 2: Activate Virtual Environment
+
+```bash
+source venv/bin/activate
+```
+
+You should see `(venv)` appear in your terminal prompt.
+
+### Step 3: Verify Installation (Optional)
+
+```bash
+python3 test_setup.py
+```
 
 ---
 
