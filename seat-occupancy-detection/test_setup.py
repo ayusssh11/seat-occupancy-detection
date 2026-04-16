@@ -99,7 +99,7 @@ def test_file_structure():
         'main.py',
         'calibrate.py',
         'seat_mapper.py',
-        'utils.py',
+        'seat_utils.py',
         'config.py',
         'requirements.txt',
         'README.md'
@@ -138,6 +138,7 @@ def main():
             test_import('numpy'),
             test_import('torch', 'PyTorch'),
             test_import('torchvision'),
+            test_import('flask_cors', 'flask-cors'),
         ])),
         ("PyTorch & CUDA", test_pytorch),
         ("Webcam", test_webcam),

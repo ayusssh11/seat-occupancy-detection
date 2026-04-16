@@ -5,6 +5,7 @@ This guide shows you how to run the seat occupancy detection system on your loca
 ## Prerequisites
 
 - Python 3.8+
+- Node.js 18+ and npm
 - Webcam (built-in or USB)
 - (Optional) CUDA-capable GPU for better performance
 - Git (for cloning the repository)
@@ -13,72 +14,43 @@ This guide shows you how to run the seat occupancy detection system on your loca
 
 ## Initial Setup (New Machine)
 
-If this is your first time setting up the project on a new machine, follow these steps:
+If this is your first time setting up the project, follow these steps:
 
-### Step 1: Clone the Repository
-
+### Step 1: Clone and Navigate
 ```bash
 git clone https://github.com/himanshu-cloudsufi/seat-occupancy-detection.git
 cd seat-occupancy-detection
 ```
 
-Or if you already have the repository:
+### Step 2: Backend Setup (Python)
 ```bash
-cd /path/to/seat-occupancy-detection
-```
+# Navigate to backend directory
+cd seat-occupancy-detection
 
-### Step 2: Create Virtual Environment
-
-```bash
+# Create and activate virtual environment
 python3 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip3 install -r requirements.txt
 ```
 
-This creates a new virtual environment in the `venv` directory.
-
-### Step 3: Activate Virtual Environment
-
-**macOS/Linux:**
+### Step 3: Frontend Setup (Next.js)
 ```bash
+# From the project root
+cd ../frontend
+
+# Install dependencies
+npm install
+```
+
+### Step 4: Verify Installation
+```bash
+# Test backend setup
+cd ../seat-occupancy-detection
 source venv/bin/activate
-```
-
-**Windows:**
-```bash
-venv\Scripts\activate
-```
-
-You should see `(venv)` appear in your terminal prompt.
-
-### Step 4: Install Dependencies
-
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-This will install all required packages:
-- PyTorch and torchvision
-- OpenCV (cv2)
-- YOLOv5
-- NumPy
-- Flask (for web interface)
-
-**Note:** First installation may take 5-10 minutes depending on your internet connection.
-
-### Step 5: Verify Installation
-
-```bash
 python3 test_setup.py
 ```
-
-This command checks:
-- ✓ Python version
-- ✓ All dependencies installed
-- ✓ CUDA/GPU availability
-- ✓ Webcam access
-- ✓ YOLOv5 model weights (downloads on first run ~14MB)
-
-**If all checks pass, you're ready to run the system!**
 
 ---
 
@@ -110,92 +82,45 @@ python3 test_setup.py
 
 ## Running the System
 
-### Option A: Auto-Calibrate + Detect (Recommended for First Time)
+The project now consists of two parts that must run simultaneously.
+
+### Part 1: Start the Backend API
+This handles the webcam feed and YOLOv5 detection.
 
 ```bash
+cd seat-occupancy-detection
+source venv/bin/activate
+python3 web_server.py
+```
+The API will start on **http://localhost:5000**.
+
+### Part 2: Start the Modern Dashboard
+This provides the premium user interface.
+
+```bash
+cd frontend
+npm run dev
+```
+Open your browser to: **http://localhost:3000**
+
+---
+
+## Legacy Running Options (OpenCV Only)
+
+If you prefer to run without the web dashboard:
+
+### Option A: Auto-Calibrate + Detect (Local Window)
+```bash
+cd seat-occupancy-detection
+source venv/bin/activate
 python3 main.py --auto-calibrate
 ```
 
-**What happens:**
-1. Opens webcam
-2. Analyzes 30 frames to detect chairs automatically
-3. Creates `seat_zones.json` with detected seat positions
-4. Starts real-time occupancy detection
-
-**Runtime Controls:**
-- `q` - Quit application
-- `r` - Start/Stop recording (saves to `output/recording_TIMESTAMP.mp4`)
-- `h` - Show help overlay
-
----
-
-### Option B: Manual Calibration First
-
-If auto-calibration doesn't work well or you want precise control:
-
-**Step 1: Calibrate Seat Zones**
-
+### Option B: Manual Calibration
 ```bash
 python3 calibrate.py
-```
-
-**Calibration Instructions:**
-- **Left-click** on 4 corners of each seat (clockwise order)
-- After 4 clicks, the seat zone is completed automatically
-- Press `n` to move to next seat
-- Press `s` to save zones and exit
-- Press `q` to quit without saving
-
-**Optional: Hybrid Mode (Auto + Manual)**
-
-```bash
-python3 calibrate.py --auto
-```
-
-This shows auto-detected suggestions (yellow boxes) that you can:
-- Click to approve
-- Press `c` to clear and draw manually
-- Press `a` to re-run auto-detection
-
-**Step 2: Run Detection**
-
-```bash
 python3 main.py
 ```
-
----
-
-### Option C: Web Interface (Browser-Based)
-
-For a browser-based interface instead of OpenCV window:
-
-```bash
-python3 web_server.py
-```
-
-Then open your browser to: **http://localhost:5000**
-
-**With auto-calibration:**
-```bash
-python3 web_server.py --auto-calibrate
-```
-
-**For network access (access from other devices):**
-```bash
-python3 web_server.py --host 0.0.0.0 --port 8080
-```
-
-Then access from any device on the same network: `http://<your-ip>:8080`
-
-**Web Interface Features:**
-- Live video stream with detection overlay
-- Real-time statistics dashboard
-- Recording controls (start/stop)
-- API endpoints:
-  - `GET /api/stats` - Current occupancy statistics
-  - `POST /api/recording/start` - Start recording
-  - `POST /api/recording/stop` - Stop recording
-  - `POST /api/calibrate/auto` - Trigger auto-calibration
 
 ---
 

@@ -7,6 +7,7 @@ Then open http://localhost:5000 in your browser
 """
 
 from flask import Flask, render_template, Response, jsonify, request
+from flask_cors import CORS
 import cv2
 import torch
 import numpy as np
@@ -25,6 +26,7 @@ from auto_calibrator import AutoCalibrator
 
 
 app = Flask(__name__)
+CORS(app)
 app.config['SECRET_KEY'] = 'seat-occupancy-detection-2025'
 
 # Global detector instance
@@ -116,9 +118,12 @@ class WebSeatOccupancyDetector:
         # Latest frame and stats
         self.latest_frame = None
         self.latest_stats = {
-            'occupied': 0,
-            'total': len(self.seat_zones),
-            'rate': 0.0,
+            'occupied_count': 0,
+            'total_seats': len(self.seat_zones),
+            'occupancy_rate': 0.0,
+            'persons_detected': 0,
+            'occupied_seats': [],
+            'empty_seats': [name for name in self.seat_zones],
             'fps': 0.0,
             'recording': False,
             'seats': {},
@@ -327,13 +332,19 @@ class WebSeatOccupancyDetector:
                 is_occupied = self.seat_mapper.is_seat_occupied(seat_name)
                 seats_detail[seat_name] = 'occupied' if is_occupied else 'empty'
 
+            occupied_seats = [name for name, status in seats_detail.items() if status == 'occupied']
+            empty_seats = [name for name, status in seats_detail.items() if status == 'empty']
+
             self.latest_stats = {
-                'occupied': occupied,
-                'total': total,
-                'rate': round(rate, 1),
+                'occupied_count': occupied,
+                'total_seats': total,
+                'occupancy_rate': round(rate, 1),
+                'persons_detected': len(persons),
+                'occupied_seats': occupied_seats,
+                'empty_seats': empty_seats,
                 'fps': round(self.fps, 1),
                 'recording': self.is_recording,
-                'seats': seats_detail
+                'seats': seats_detail # Keep for backward compatibility if needed
             }
 
             # Add chair statistics if enabled
@@ -341,6 +352,7 @@ class WebSeatOccupancyDetector:
                 total_chairs, aligned, misaligned = self.chair_mapper.get_chair_statistics()
                 self.latest_stats['chairs_detected'] = total_chairs
                 self.latest_stats['chairs_aligned'] = aligned
+                self.latest_stats['chairs_misaligned'] = misaligned
 
         # Draw visualizations
         self.draw_seat_zones(frame)
@@ -406,7 +418,7 @@ class WebSeatOccupancyDetector:
         self.seat_zones = utils.load_zones('seat_zones.json')
         if self.seat_zones:
             self.seat_mapper = SeatMapper(self.seat_zones, config.MIN_OVERLAP_RATIO)
-            self.latest_stats['total'] = len(self.seat_zones)
+            self.latest_stats['total_seats'] = len(self.seat_zones)
             return True
         return False
 
@@ -428,8 +440,12 @@ def broadcast_sse_message(message):
 
 @app.route('/')
 def index():
-    """Serve the main page"""
-    return render_template('index.html')
+    """Redirect or serve a simple message since frontend is now Next.js"""
+    return jsonify({
+        "status": "online",
+        "message": "Seat Occupancy Detection Backend is running",
+        "frontend_url": "http://localhost:3000"
+    })
 
 
 @app.route('/video_feed')
@@ -513,7 +529,7 @@ def auto_calibrate():
             if seat_zones:
                 detector.seat_zones = seat_zones
                 detector.seat_mapper = SeatMapper(seat_zones, config.MIN_OVERLAP_RATIO)
-                detector.latest_stats['total'] = len(seat_zones)
+                detector.latest_stats['total_seats'] = len(seat_zones)
                 
                 # Restart detection
                 if was_running:
